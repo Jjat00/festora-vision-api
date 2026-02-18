@@ -48,6 +48,7 @@ def _quality_bucket(brisque: float, nima_technical: float) -> str:
 
 
 def _aesthetic_label(nima_score: float) -> str:
+    # nima_score is already scaled to [0, 10] (nima-koniq raw × 10).
     if nima_score >= 6.5:
         return "high"
     if nima_score >= 5.0:
@@ -86,7 +87,9 @@ def analyse_aesthetic(image: LoadedImage, registry: ModelRegistry) -> AestheticR
     with torch.no_grad():
         nima_a_raw = registry.pyiqa_nima_aesthetic.instance(tensor)
 
-    nima_a = float(nima_a_raw.item())
+    # nima-koniq outputs scores in [0, 1]; multiply by 10 to match the
+    # conventional NIMA [0, 10] scale used throughout the API and the DB schema.
+    nima_a = float(nima_a_raw.item()) * 10
 
     return AestheticResult(
         nima_aesthetic_score=round(nima_a, 3),
