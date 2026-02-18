@@ -14,12 +14,13 @@
 FROM python:3.11-slim AS builder
 
 # System dependencies for OpenCV + DeepFace
+# libgl1-mesa-glx was renamed to libgl1 in Debian Trixie (Debian 13).
 RUN apt-get update && apt-get install -y --no-install-recommends \
         libglib2.0-0 \
         libsm6 \
         libxext6 \
         libxrender-dev \
-        libgl1-mesa-glx \
+        libgl1 \
         wget \
         curl \
     && rm -rf /var/lib/apt/lists/*
@@ -37,9 +38,15 @@ RUN pip install --upgrade pip && \
         torchvision==0.25.0 \
         --index-url https://download.pytorch.org/whl/cpu
 
-# Install remaining dependencies from PyPI.
-# torch/torchvision are already satisfied from the step above — pip
-# will skip reinstalling them since the pinned versions match.
+# Install pyiqa WITHOUT its declared dependencies.
+# pyiqa 0.1.14.1 hard-pins transformers==4.37.2 but we need 5.x for CLIP.
+# BRISQUE and NIMA don't call the transformers library internally — they
+# only need torch, torchvision, timm, scipy, and addict, all of which
+# are provided by requirements.txt.
+RUN pip install --no-cache-dir --no-deps pyiqa==0.1.14.1
+
+# Install remaining dependencies from PyPI (includes transformers 5.2.0).
+# torch/torchvision are already satisfied — pip will skip reinstalling.
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Pre-download all ML model weights at build time.
@@ -62,12 +69,13 @@ LABEL org.opencontainers.image.source="https://github.com/Jjat00/festora-vision-
 LABEL org.opencontainers.image.licenses="MIT"
 
 # Runtime system libraries (same as builder, minus build tools).
+# libgl1-mesa-glx was renamed to libgl1 in Debian Trixie (Debian 13).
 RUN apt-get update && apt-get install -y --no-install-recommends \
         libglib2.0-0 \
         libsm6 \
         libxext6 \
         libxrender-dev \
-        libgl1-mesa-glx \
+        libgl1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Non-root user for security.
@@ -80,8 +88,10 @@ WORKDIR /app
 COPY --from=builder /usr/local/lib/python3.11 /usr/local/lib/python3.11
 COPY --from=builder /usr/local/bin /usr/local/bin
 
-# Copy pre-downloaded model weights.
+# Copy pre-downloaded model weights and fix ownership so the non-root
+# visionapi user can write HuggingFace cache metadata at runtime.
 COPY --from=builder /app/models_cache /app/models_cache
+RUN chown -R visionapi:visionapi /app/models_cache
 
 # Copy application source.
 COPY --chown=visionapi:visionapi app/ /app/app/
@@ -108,4 +118,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
 
 # Use 2 workers by default; scale via UVICORN_WORKERS env var.
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers ${UVICORN_WORKERS:-2} --log-level warning"]
+# Set UVICORN_LOG_LEVEL=info (docker-compose) to see HTTP access logs in dev.
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers ${UVICORN_WORKERS:-2} --log-level ${UVICORN_LOG_LEVEL:-warning}"]

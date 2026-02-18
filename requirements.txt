@@ -2,6 +2,10 @@
 # festora-vision-api — Python dependencies
 # Versions verified against PyPI latest as of 2026-02-17.
 # Keep torch CPU-only to minimise image size (~2 GB vs ~6 GB GPU).
+#
+# NOTE: pyiqa is NOT listed here — it is installed with --no-deps
+# in the Dockerfile to avoid its hard pin on transformers==4.37.2.
+# Its actual runtime deps (timm, scipy, etc.) are listed below.
 # ============================================================
 
 # --- Web framework ---
@@ -26,16 +30,22 @@ opencv-python-headless==4.13.0.92
 torch==2.10.0
 torchvision==0.25.0
 
-# --- ML: CLIP embeddings ---
+# --- ML: CLIP embeddings (latest versions — no pyiqa conflict) ---
 transformers==5.2.0
 huggingface-hub==1.4.1
 
-# --- ML: Image quality (BRISQUE + NIMA) ---
-pyiqa==0.1.14.1
+# --- ML: pyiqa runtime deps (installed separately since pyiqa uses --no-deps) ---
+# These are the packages pyiqa actually needs at runtime for BRISQUE + NIMA.
+# (addict, timm, einops, scipy, scikit-image)
+timm>=1.0.0          # model backbones (VGG, etc.) used by NIMA
+scipy>=1.13.0        # SVM/stat operations used by BRISQUE
+scikit-image>=0.24.0 # image utilities used by some IQA metrics
+addict>=2.4.0        # config dict used throughout pyiqa
+einops>=0.8.0        # tensor reshaping used by pyiqa models
 
 # --- ML: Emotion analysis ---
 deepface==0.0.98
-tf-keras==2.20.1        # DeepFace backend requirement (TF 2.x Keras compat)
+tf-keras==2.20.1     # DeepFace backend requirement (TF 2.x Keras compat)
 
 # --- Clustering ---
 scikit-learn==1.8.0

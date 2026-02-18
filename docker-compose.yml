@@ -18,6 +18,11 @@ services:
     container_name: festora-vision-api
     ports:
       - "8000:8000"
+    # Variables de entorno: primero los defaults hardcodeados,
+    # luego se sobreescriben con .env si existe.
+    env_file:
+      - path: ./.env
+        required: false   # si no existe .env, usa solo los defaults de abajo
     environment:
       # Authentication — leave blank for open/unauthenticated dev mode.
       # Set to a secret string to enable API key auth.
@@ -30,6 +35,12 @@ services:
 
       # Rate limiting
       RATE_LIMIT_ENABLED: "false"   # disabled in dev for easy testing
+
+      # HTTP access logs: "info" shows every request (useful for debugging)
+      UVICORN_LOG_LEVEL: info
+
+      # 1 worker en dev: 2 workers × ~2 GB de modelos agota la RAM de 4 GB.
+      UVICORN_WORKERS: "1"
 
       # Model config (should match what was downloaded at build time)
       CLIP_MODEL_NAME: openai/clip-vit-base-patch32

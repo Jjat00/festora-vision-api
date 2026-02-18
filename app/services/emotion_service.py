@@ -45,12 +45,16 @@ def _analyse_emotion_sync(bgr: np.ndarray, detector_backend: str) -> EmotionResu
 
     faces: list[EmotionEntry] = []
     for face in results:
+        # DeepFace ≥ 0.0.93 adds left_eye/right_eye as (x, y) tuples to the
+        # region dict. Keep only the four integer bounding-box keys.
+        raw_region = face.get("region", {})
+        region = {k: v for k, v in raw_region.items() if k in ("x", "y", "w", "h")}
         faces.append(
             EmotionEntry(
                 dominant_emotion=face["dominant_emotion"],
                 scores={k: round(v, 3) for k, v in face["emotion"].items()},
                 face_confidence=round(face.get("face_confidence", 0.0), 4),
-                region=face.get("region", {}),
+                region=region,
             )
         )
 
