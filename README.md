@@ -173,8 +173,8 @@ Key variables:
 python -m venv .venv
 source .venv/bin/activate
 
-# Install CPU-only torch first
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+# Install CPU-only torch first (pinned to match requirements.txt)
+pip install torch==2.10.0 torchvision==0.25.0 --index-url https://download.pytorch.org/whl/cpu
 
 # Install remaining deps
 pip install -r requirements-dev.txt
@@ -205,7 +205,7 @@ app/
   main.py                   FastAPI app + lifespan (model loading)
   core/
     config.py               Pydantic Settings (all env vars)
-    security.py             API key auth dependency
+    security.py             API key auth dependency (X-Api-Key)
     errors.py               Structured error responses + handlers
     logging.py              JSON / human-readable log setup
   models/
@@ -215,17 +215,20 @@ app/
     analysis.py             Request/response schemas for /analyze
     cluster.py              Request/response schemas for /cluster
     health.py               Health response schema
+    llm_analysis.py         LlmPhotoAnalysis, LlmAnalyzeRequest/Response
   services/
     blur_service.py         OpenCV Laplacian variance
     quality_service.py      PyIQA BRISQUE + NIMA
-    emotion_service.py      DeepFace (thread-pooled)
-    embedding_service.py    CLIP 512D vectors
-    cluster_service.py      DBSCAN
+    emotion_service.py      DeepFace (offloaded via asyncio.to_thread)
+    embedding_service.py    CLIP 512D L2-normalised vectors
+    cluster_service.py      DBSCAN with cosine metric
+    llm_service.py          LiteLLM vision analysis (Claude/GPT-4o/Gemini)
     analysis_orchestrator.py  Coordinates all services per image
   api/v1/
     router.py               Aggregate v1 router
     endpoints/
       analyze.py            POST /v1/analyze, /v1/analyze/batch
+      llm_analyze.py        POST /v1/analyze/llm
       cluster.py            POST /v1/cluster
       health.py             GET /health, /v1/health
 ```
@@ -279,18 +282,24 @@ Switch providers by changing the `model` field — no code changes needed:
 
 ## Tech stack
 
-| Component | Library | Why |
-|-----------|---------|-----|
-| Web framework | FastAPI 0.115 | Async, auto OpenAPI |
-| Validation | Pydantic v2 | Fast, type-safe |
-| Image I/O | Pillow + httpx | Async URL fetch |
-| Blur detection | OpenCV | Laplacian — fast, no GPU |
-| Quality / aesthetic | PyIQA (BRISQUE, NIMA) | State-of-the-art NR-IQA |
-| Emotion | DeepFace | Best OSS face analysis |
-| Embeddings | HuggingFace CLIP | 512D semantic vectors |
-| Clustering | scikit-learn DBSCAN | Cosine metric, no k needed |
-| LLM analysis | LiteLLM | Unified interface for 100+ LLMs |
-| Rate limiting | slowapi | Plugs into FastAPI |
+| Component | Library | Version | Why |
+|-----------|---------|---------|-----|
+| Web framework | FastAPI | 0.129.0 | Async, auto OpenAPI |
+| ASGI server | Uvicorn | 0.41.0 | Production-grade server |
+| Validation | Pydantic | 2.12.5 | Fast, type-safe |
+| Config | pydantic-settings | 2.13.0 | BaseSettings + .env support |
+| HTTP client | httpx | 0.28.1 | Async URL fetch |
+| Image I/O | Pillow | 12.1.1 | PIL image processing |
+| Numerical | NumPy | 2.4.2 | Array operations |
+| Computer vision | OpenCV | 4.13.0.92 | Blur (Laplacian) — fast, no GPU |
+| Deep learning | PyTorch | 2.10.0 (CPU) | ML inference backbone |
+| Transformers | HuggingFace Transformers | 5.2.0 | CLIP model + processor |
+| Model hub | huggingface-hub | 1.4.1 | Weight download + caching |
+| Quality / aesthetic | PyIQA | 0.1.14.1 | BRISQUE + NIMA NR-IQA metrics |
+| Emotion | DeepFace | 0.0.98 | Face detection + emotion analysis |
+| Clustering | scikit-learn | 1.8.0 | DBSCAN with cosine metric |
+| LLM analysis | LiteLLM | 1.81.13 | Unified interface for 100+ LLMs |
+| Rate limiting | slowapi | 0.1.9 | Per-IP limiting for FastAPI |
 
 ---
 
