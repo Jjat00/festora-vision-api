@@ -1,0 +1,52 @@
+# ============================================================
+# festora-vision-api — Python dependencies
+# Pin major versions for reproducible builds.
+# Keep torch CPU-only to minimise image size (~2 GB vs ~6 GB GPU).
+# ============================================================
+
+# --- Web framework ---
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+pydantic==2.10.4
+pydantic-settings==2.7.0
+
+# --- HTTP client (async image fetching) ---
+httpx==0.28.1
+
+# --- Image I/O ---
+Pillow==11.1.0
+numpy==1.26.4
+
+# --- Computer vision ---
+opencv-python-headless==4.10.0.84
+
+# --- ML: PyTorch (CPU-only build — avoids CUDA drivers in Docker) ---
+# Install separately via the CPU index URL in the Dockerfile.
+# Listed here for documentation; the Dockerfile pip install overrides this.
+torch==2.5.1
+torchvision==0.20.1
+
+# --- ML: CLIP embeddings ---
+transformers==4.47.1
+huggingface-hub==0.27.0
+
+# --- ML: Image quality (BRISQUE + NIMA) ---
+pyiqa==0.1.13
+
+# --- ML: Emotion analysis ---
+deepface==0.0.93
+tf-keras==2.18.0        # DeepFace backend requirement (TF 2.x Keras compat)
+
+# --- Clustering ---
+scikit-learn==1.6.0
+
+# --- LLM visual analysis (unified interface for 100+ providers) ---
+# Docs: https://docs.litellm.ai/docs/providers
+# Set ANTHROPIC_API_KEY, OPENAI_API_KEY, or GEMINI_API_KEY as needed.
+litellm==1.57.4
+
+# --- Rate limiting (optional) ---
+slowapi==0.1.9
+
+# --- Dev / test (not installed in production Docker image) ---
+# See requirements-dev.txt

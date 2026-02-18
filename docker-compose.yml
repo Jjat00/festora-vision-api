@@ -1,0 +1,73 @@
+version: "3.9"
+
+# ============================================================
+# festora-vision-api — local development compose file
+#
+# Usage:
+#   docker compose up --build          # first run (builds + downloads models)
+#   docker compose up                  # subsequent runs (uses cached image)
+#   docker compose down
+# ============================================================
+
+services:
+  vision-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: festora-vision-api:local
+    container_name: festora-vision-api
+    ports:
+      - "8000:8000"
+    environment:
+      # Authentication — leave blank for open/unauthenticated dev mode.
+      # Set to a secret string to enable API key auth.
+      API_KEY: ""
+
+      # Logging
+      ENVIRONMENT: development
+      LOG_JSON: "false"       # human-readable logs in dev
+      LOG_LEVEL: DEBUG
+
+      # Rate limiting
+      RATE_LIMIT_ENABLED: "false"   # disabled in dev for easy testing
+
+      # Model config (should match what was downloaded at build time)
+      CLIP_MODEL_NAME: openai/clip-vit-base-patch32
+      DEEPFACE_DETECTOR: opencv
+
+      # Limits
+      MAX_BATCH_SIZE: "20"
+      MAX_IMAGE_SIZE_BYTES: "31457280"   # 30 MB
+      MAX_IMAGE_FETCH_TIMEOUT_SECONDS: "15"
+
+    volumes:
+      # Hot-reload: mount source so changes apply without rebuild.
+      # Remove in production.
+      - ./app:/app/app:ro
+
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s    # models take time to load on first boot
+
+    restart: unless-stopped
+
+    # Resource limits — important for CPU-only inference on shared hosts.
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: "4"
+
+# Optional: uncomment to add a Redis instance for distributed rate limiting
+# (requires replacing slowapi's in-memory store with redis backend)
+#
+#   redis:
+#     image: redis:7-alpine
+#     container_name: vision-redis
+#     ports:
+#       - "6379:6379"
+#     restart: unless-stopped

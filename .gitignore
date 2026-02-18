@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+.venv/
+venv/
+env/
+
+# Environment
+.env
+.env.local
+
+# Model weights — large files, never commit
+models_cache/
+*.bin
+*.safetensors
+*.onnx
+*.pt
+*.pth
+
+# Test / coverage
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Docker
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
