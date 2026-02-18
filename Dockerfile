@@ -33,13 +33,14 @@ COPY requirements.txt .
 # The --index-url overrides PyPI for torch/torchvision only.
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir \
-        torch==2.5.1 \
-        torchvision==0.20.1 \
+        torch==2.10.0 \
+        torchvision==0.25.0 \
         --index-url https://download.pytorch.org/whl/cpu
 
 # Install remaining dependencies from PyPI.
-RUN pip install --no-cache-dir -r requirements.txt \
-    --no-deps torch torchvision  # already installed above
+# torch/torchvision are already satisfied from the step above — pip
+# will skip reinstalling them since the pinned versions match.
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Pre-download all ML model weights at build time.
 # This runs a helper script that triggers each library's auto-download
@@ -57,7 +58,7 @@ FROM python:3.11-slim AS runtime
 
 LABEL org.opencontainers.image.title="festora-vision-api"
 LABEL org.opencontainers.image.description="Reusable image analysis microservice"
-LABEL org.opencontainers.image.source="https://github.com/your-org/festora-vision-api"
+LABEL org.opencontainers.image.source="https://github.com/Jjat00/festora-vision-api"
 LABEL org.opencontainers.image.licenses="MIT"
 
 # Runtime system libraries (same as builder, minus build tools).
@@ -102,7 +103,8 @@ USER visionapi
 
 EXPOSE 8000
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+# Allow up to 90s for model loading before health checks start.
+HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
 
 # Use 2 workers by default; scale via UVICORN_WORKERS env var.
