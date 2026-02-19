@@ -164,6 +164,10 @@ Key variables:
 | `MAX_BATCH_SIZE` | `20` | Max images per batch request |
 | `CLIP_MODEL_NAME` | `openai/clip-vit-base-patch32` | HuggingFace model ID |
 | `DEEPFACE_DETECTOR` | `opencv` | Face detector backend |
+| `LLM_DEFAULT_MODEL` | `anthropic/claude-opus-4-6` | Default model for `/v1/analyze/llm` |
+| `ANTHROPIC_API_KEY` | `""` | Required for Claude models |
+| `OPENAI_API_KEY` | `""` | Required for GPT models |
+| `GEMINI_API_KEY` | `""` | Required for Gemini models |
 
 ---
 
@@ -258,12 +262,12 @@ Response:
     "overall_score": 8,
     "discard_reason": null,
     "best_in_group": true,
-    "composition": "rule of thirds",
-    "pose_quality": "natural and relaxed",
-    "background_quality": "soft bokeh, non-distracting",
-    "highlights": ["genuine smile", "sharp focus on subject", "good lighting"],
+    "composition": "regla de los tercios",
+    "pose_quality": "natural y relajada",
+    "background_quality": "bokeh suave, no distractivo",
+    "highlights": ["sonrisa genuina", "enfoque nítido en el sujeto", "buena iluminación"],
     "issues": [],
-    "summary": "Natural portrait with excellent composition and a genuine expression."
+    "summary": "Retrato natural con excelente composición y una expresión genuina."
   },
   "model_used": "claude-opus-4-6-20250514",
   "tokens_used": 387,

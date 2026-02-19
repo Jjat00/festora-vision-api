@@ -35,34 +35,36 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 _DEFAULT_PROMPT = """\
-You are an expert photography analyst. Analyze this photograph and respond with \
-ONLY a valid JSON object — no markdown, no explanation, just raw JSON.
+Eres un experto analista de fotografía profesional. Analiza esta fotografía y responde con \
+ÚNICAMENTE un objeto JSON válido — sin markdown, sin explicaciones, solo JSON puro.
 
-The JSON must match this exact schema:
+El JSON debe coincidir exactamente con este esquema:
 {
-  "overall_score": <integer 1-10>,
-  "discard_reason": <string or null>,
-  "best_in_group": <boolean>,
+  "overall_score": <entero 1-10>,
+  "discard_reason": <string o null>,
+  "best_in_group": <booleano>,
   "composition": <string>,
-  "pose_quality": <string or null>,
+  "pose_quality": <string o null>,
   "background_quality": <string>,
   "highlights": [<string>, ...],
   "issues": [<string>, ...],
   "summary": <string>
 }
 
-Guidelines:
-- overall_score: 1 = reject immediately, 10 = portfolio quality
-- discard_reason: fill in when eyes are closed, motion blur, severe overexposure, \
-  cut-off subjects, etc. Leave null if photo is acceptable.
-- best_in_group: true only if this is clearly the best of a similar series
-- composition: describe the compositional technique used
-- pose_quality: null for non-portrait shots (landscapes, products)
-- highlights: up to 5 strong points
-- issues: up to 5 problems; empty list if none
-- summary: one concise sentence for the photographer
+Instrucciones:
+- overall_score: 1 = rechazar de inmediato, 10 = calidad de portafolio
+- discard_reason: indica el motivo cuando haya ojos cerrados, desenfoque por movimiento, \
+  sobreexposición severa, sujetos cortados, etc. Dejar null si la foto es aceptable.
+- best_in_group: true solo si esta foto es claramente la mejor de una serie similar
+- composition: describe la técnica de composición utilizada (ej. "regla de los tercios", \
+  "composición centrada", "diagonal", "simétrica", "candid")
+- pose_quality: null para fotos sin personas (paisajes, productos)
+- highlights: hasta 5 puntos fuertes de la foto
+- issues: hasta 5 problemas encontrados; lista vacía si no hay ninguno
+- summary: una frase concisa dirigida al fotógrafo
 
-Respond with ONLY the JSON object.\
+Todos los valores de texto deben estar en español.
+Responde con ÚNICAMENTE el objeto JSON.\
 """
 
 
