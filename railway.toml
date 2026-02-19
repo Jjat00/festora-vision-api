@@ -1,0 +1,16 @@
+[build]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+# Railway injects $PORT — override Dockerfile CMD to use it
+startCommand = "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers ${UVICORN_WORKERS:-1} --log-level ${UVICORN_LOG_LEVEL:-warning}"
+healthcheckPath = "/health"
+healthcheckTimeout = 300   # 5 min — models take up to 2 min to load on cold start
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
+
+[deploy.environmentVariables]
+ENVIRONMENT = "production"
+LOG_JSON = "true"
+UVICORN_WORKERS = "1"      # 1 worker en Railway (RAM limitada); sube a 2 si tienes 4GB+
