@@ -111,6 +111,15 @@ ENV RATE_LIMIT_PER_MINUTE=60
 
 USER visionapi
 
+# Reduce TensorFlow/Keras memory and startup overhead.
+# TF tries to allocate aggressively on CPU; these caps prevent OOM in
+# constrained environments (Railway, Fly.io, etc.).
+ENV TF_CPP_MIN_LOG_LEVEL=3
+ENV TF_ENABLE_ONEDNN_OPTS=0
+ENV TF_NUM_INTEROP_THREADS=1
+ENV TF_NUM_INTRAOP_THREADS=2
+ENV OMP_NUM_THREADS=2
+
 EXPOSE 8000
 
 # Allow up to 90s for model loading before health checks start.
@@ -119,4 +128,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
 
 # Use 2 workers by default; scale via UVICORN_WORKERS env var.
 # Set UVICORN_LOG_LEVEL=info (docker-compose) to see HTTP access logs in dev.
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers ${UVICORN_WORKERS:-2} --log-level ${UVICORN_LOG_LEVEL:-warning}"]
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers ${UVICORN_WORKERS:-1} --log-level ${UVICORN_LOG_LEVEL:-warning}"]
