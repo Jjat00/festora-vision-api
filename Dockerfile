@@ -111,15 +111,6 @@ ENV RATE_LIMIT_PER_MINUTE=60
 
 USER visionapi
 
-# Reduce TensorFlow/Keras memory and startup overhead.
-# TF tries to allocate aggressively on CPU; these caps prevent OOM in
-# constrained environments (Railway, Fly.io, etc.).
-ENV TF_CPP_MIN_LOG_LEVEL=3
-ENV TF_ENABLE_ONEDNN_OPTS=0
-ENV TF_NUM_INTEROP_THREADS=1
-ENV TF_NUM_INTRAOP_THREADS=2
-ENV OMP_NUM_THREADS=2
-
 EXPOSE 8000
 
 # Allow up to 90s for model loading before health checks start.
