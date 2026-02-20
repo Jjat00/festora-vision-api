@@ -38,3 +38,6 @@ htmlcov/
 .vscode/
 .idea/
 *.swp
+
+
+.mcp.json
