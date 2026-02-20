@@ -40,7 +40,7 @@ Eres un experto analista de fotografía profesional. Analiza esta fotografía y 
 
 El JSON debe coincidir exactamente con este esquema:
 {
-  "overall_score": <entero 1-10>,
+  "overall_score": <decimal 1.0-10.0, un decimal>,
   "discard_reason": <string o null>,
   "best_in_group": <booleano>,
   "composition": <string>,
@@ -52,7 +52,7 @@ El JSON debe coincidir exactamente con este esquema:
 }
 
 Instrucciones:
-- overall_score: 1 = rechazar de inmediato, 10 = calidad de portafolio
+- overall_score: número decimal con un decimal (ej: 6.3, 7.8, 9.1). 1.0 = rechazar de inmediato, 10.0 = calidad de portafolio. Usa el decimal para diferenciar fotos similares
 - discard_reason: indica el motivo cuando haya ojos cerrados, desenfoque por movimiento, \
   sobreexposición severa, sujetos cortados, etc. Dejar null si la foto es aceptable.
 - best_in_group: true solo si esta foto es claramente la mejor de una serie similar

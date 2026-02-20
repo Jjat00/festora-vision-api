@@ -13,9 +13,9 @@ from pydantic import BaseModel, Field
 
 
 class LlmPhotoAnalysis(BaseModel):
-    overall_score: int = Field(
-        ..., ge=1, le=10,
-        description="Overall photo quality score from 1 (worst) to 10 (best).",
+    overall_score: float = Field(
+        ..., ge=1.0, le=10.0,
+        description="Overall photo quality score from 1.0 (worst) to 10.0 (best), with one decimal place.",
     )
     discard_reason: str | None = Field(
         None,
